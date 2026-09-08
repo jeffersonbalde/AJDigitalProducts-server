@@ -1,0 +1,34 @@
+name: aj-creative-studio-server
+region: nyc
+services:
+  - name: api
+    github:
+      repo: your-repo-name
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    build_command: |
+      cd server && composer install --no-interaction --prefer-dist --optimize-autoloader
+      cd client && npm ci && npm run build
+    run_command: php -S 0.0.0.0:8080 -t public
+    environment_slug: php
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 8080
+    health_check:
+      http_path: /up
+    envs:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+    # Increase upload limits
+    nginx:
+      client_max_body_size: 100M
+    php:
+      upload_max_filesize: 100M
+      post_max_size: 100M
+      max_execution_time: 300
+      max_input_time: 300
+      memory_limit: 256M
+
