@@ -176,7 +176,7 @@
 
         <div style="margin-top: 30px; padding: 20px; background-color: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
             <p style="margin: 0; color: #856404;">
-                <strong>📎 Excel File Attached:</strong> A detailed order summary has been attached to this email. You can also download your products using the buttons above or visit your order page.
+                <strong>📎 Order Summary Attached:</strong> A copy of your order summary is attached to this email for your records. Download your product files using the buttons above.
             </p>
         </div>
 
