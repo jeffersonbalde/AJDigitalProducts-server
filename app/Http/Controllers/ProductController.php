@@ -18,7 +18,7 @@ class ProductController extends Controller
             $products = Product::where('is_active', true)->get();
 
             $apiBase = rtrim((string) config('app.url'), '/') . '/api';
-            $siteBase = $request->getSchemeAndHttpHost();
+            $siteBase = 'https://' . $request->getHost();
 
             $out = fopen('php://temp', 'r+');
             fputcsv($out, ['id', 'title', 'description', 'availability', 'condition', 'price', 'link', 'image_link']);
