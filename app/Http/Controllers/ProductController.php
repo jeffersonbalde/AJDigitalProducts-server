@@ -18,7 +18,7 @@ class ProductController extends Controller
             $products = Product::where('is_active', true)->get();
 
             $apiBase = rtrim((string) config('app.url'), '/') . '/api';
-            $siteBase = $request->getSchemeAndHost();
+            $siteBase = $request->getSchemeAndHttpHost();
 
             $out = fopen('php://temp', 'r+');
             fputcsv($out, ['id', 'title', 'description', 'availability', 'condition', 'price', 'link', 'image_link']);
@@ -50,11 +50,8 @@ class ProductController extends Controller
                 'Cache-Control' => 'public, max-age=3600',
             ]);
         } catch (\Throwable $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
+            report($e);
+            return response()->json(['error' => 'Unable to generate catalog feed.'], 500);
         }
     }
 
