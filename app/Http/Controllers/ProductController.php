@@ -14,30 +14,25 @@ class ProductController extends Controller
      */
     public function catalogFeed(Request $request)
     {
-        $products = Product::where('is_active', true)->get();
+        try {
+            $products = Product::where('is_active', true)->get();
 
-        $apiBase = rtrim(config('app.url'), '/') . '/api';
-        $siteBase = request()->getSchemeAndHost();
+            $apiBase = rtrim((string) config('app.url'), '/') . '/api';
+            $siteBase = $request->getSchemeAndHost();
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'public, max-age=3600',
-        ];
-
-        $callback = function () use ($products, $apiBase, $siteBase) {
-            $out = fopen('php://output', 'w');
+            $out = fopen('php://temp', 'r+');
             fputcsv($out, ['id', 'title', 'description', 'availability', 'condition', 'price', 'link', 'image_link']);
 
             foreach ($products as $product) {
                 $imageLink = $product->thumbnail_image
-                    ? $apiBase . '/storage/' . ltrim($product->thumbnail_image, '/')
+                    ? $apiBase . '/storage/' . ltrim((string) $product->thumbnail_image, '/')
                     : '';
                 $link = $siteBase . '/products/' . $product->slug;
 
                 fputcsv($out, [
                     $product->id,
                     $product->title,
-                    $product->description,
+                    (string) $product->description,
                     'in stock',
                     'new',
                     number_format((float) $product->price, 2, '.', '') . ' PHP',
@@ -46,10 +41,21 @@ class ProductController extends Controller
                 ]);
             }
 
+            rewind($out);
+            $csv = stream_get_contents($out);
             fclose($out);
-        };
 
-        return response()->stream($callback, 200, $headers);
+            return response($csv, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Cache-Control' => 'public, max-age=3600',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
