@@ -97,6 +97,7 @@ Route::post('/webhooks/paymaya', [PayMayaWebhookController::class, 'handle']);
 
 // Public product catalogue (no auth required)
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/catalog-feed.csv', [ProductController::class, 'catalogFeed']);
 Route::get('/products/{product}/faqs', [ProductFaqController::class, 'indexByProduct']);
 
 // Public product collections with products (for storefront filters)

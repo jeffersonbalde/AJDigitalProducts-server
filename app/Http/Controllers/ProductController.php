@@ -10,6 +10,49 @@ use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller
 {
     /**
+     * Public CSV product feed for Meta Commerce Manager / Google Merchant Center.
+     */
+    public function catalogFeed(Request $request)
+    {
+        $products = Product::where('is_active', true)->get();
+
+        $apiBase = rtrim(config('app.url'), '/') . '/api';
+        $siteBase = request()->getSchemeAndHost();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'public, max-age=3600',
+        ];
+
+        $callback = function () use ($products, $apiBase, $siteBase) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['id', 'title', 'description', 'availability', 'condition', 'price', 'link', 'image_link']);
+
+            foreach ($products as $product) {
+                $imageLink = $product->thumbnail_image
+                    ? $apiBase . '/storage/' . ltrim($product->thumbnail_image, '/')
+                    : '';
+                $link = $siteBase . '/products/' . $product->slug;
+
+                fputcsv($out, [
+                    $product->id,
+                    $product->title,
+                    $product->description,
+                    'in stock',
+                    'new',
+                    number_format((float) $product->price, 2, '.', '') . ' PHP',
+                    $link,
+                    $imageLink,
+                ]);
+            }
+
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
